@@ -1,0 +1,29 @@
+services:
+  postgre-data:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5435:5432"
+
+  storageservice:
+    image: ${DOCKER_REGISTRY-}storageservice
+    build:
+      context: .
+      dockerfile: StorageService/Dockerfile
+    environment: 
+      - ConnectionString=Host=postgre-data;Port=5432;Database=storagedb;Username=postgres;Password=postgres
+    depends_on: 
+      - postgre-data
+
+  ordersservice:
+    image: ${DOCKER_REGISTRY-}ordersservice
+    build:
+      context: .
+      dockerfile: OrdersService/Dockerfile
+    environment:
+    - StorageService__BaseUrl=http://storageservice:8080/
+    depends_on: 
+      - storageservice
+
+
